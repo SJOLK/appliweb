@@ -1,22 +1,34 @@
 package fr.diginamic.appliweb;
 
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+import org.jetbrains.annotations.NotNull;
+
 public class Ville {
-    private int id;
+    @NotNull
+    @Min(1)
+    private Integer id;
+
+    @NotNull
+    @Size(min = 2)
     private String nom;
+
+    @Min(1)
     private int nbHabitants;
 
-    // Constructeur vide requis pour la sérialisation/désérialisation JSON
+
     public Ville() {
     }
 
-    // Constructeur avec tous les attributs
+
     public Ville(int id, String nom, int nbHabitants) {
         this.id = id;
         this.nom = nom;
         this.nbHabitants = nbHabitants;
     }
 
-    // Getters et Setters
+
     public int getId() {
         return id;
     }
