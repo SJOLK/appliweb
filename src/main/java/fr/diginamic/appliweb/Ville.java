@@ -9,6 +9,14 @@ public class Ville {
         this.nbHabitants = nbHabitants;
     }
 
+    @Override
+    public String toString() {
+        return "Ville{" +
+                "nom='" + nom + '\'' +
+                ", nbHabitants=" + nbHabitants +
+                '}';
+    }
+
     public Ville() {
     }
 
