@@ -1,23 +1,28 @@
 package fr.diginamic.appliweb;
 
 public class Ville {
+    private int id;
     private String nom;
     private int nbHabitants;
 
-    public Ville(String nom, int nbHabitants) {
+    // Constructeur vide requis pour la sérialisation/désérialisation JSON
+    public Ville() {
+    }
+
+    // Constructeur avec tous les attributs
+    public Ville(int id, String nom, int nbHabitants) {
+        this.id = id;
         this.nom = nom;
         this.nbHabitants = nbHabitants;
     }
 
-    @Override
-    public String toString() {
-        return "Ville{" +
-                "nom='" + nom + '\'' +
-                ", nbHabitants=" + nbHabitants +
-                '}';
+    // Getters et Setters
+    public int getId() {
+        return id;
     }
 
-    public Ville() {
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNom() {
