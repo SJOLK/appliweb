@@ -1,101 +1,152 @@
 package fr.diginamic.appliweb.controleurs;
 
-import fr.diginamic.appliweb.Ville;
-import jakarta.validation.Valid;
+import fr.diginamic.appliweb.entities.Departement;
+import fr.diginamic.appliweb.entities.Ville;
+import fr.diginamic.appliweb.dtos.VilleDto;
+import fr.diginamic.appliweb.repositories.DepartementRepository;
+import fr.diginamic.appliweb.repositories.VilleRepository;
+import fr.diginamic.appliweb.services.VilleService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/villes")
 public class VilleControleur {
+
     @Autowired
-    private VilleValidator villeValidator;
-
-    private List<Ville> villes = new ArrayList<>();
-
-    public VilleControleur() {
-        villes.add(new Ville(1, "Paris", 2200000));
-        villes.add(new Ville(2, "Marseille", 861635));
-        villes.add(new Ville(3, "Lyon", 515695));
-    }
-
+    private VilleService villeService;
+    @Autowired
+    private VilleRepository villeRepository;
+    @Autowired
+    private DepartementRepository departementRepository;
+    /**
+     * GET #1 : Retourne la liste de toutes les villes
+     * Exemple d'appel : GET /villes
+     */
     @GetMapping
-    public List<Ville> listeVilles() {
-        return villes;
+    public List<Ville> getAllVilles() {
+        return villeService.extractVilles();
     }
 
+    /**
+     * GET #2 : Retourne une ville en fonction de son ID
+     * Exemple d'appel : GET /villes/10
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<Ville> getVilleById(@PathVariable int id) {
-        for (Ville v : villes) {
-            if (v.getId() == id) {
-                return ResponseEntity.ok(v);
-            }
+    public Ville getVilleById(@PathVariable int id) {
+        return villeService.extractVille(id);
+    }
+
+    /**
+     * GET #3 : Retourne une ville en fonction de son nom
+     * Exemple d'appel : GET /villes/byName?nom=Paris
+     * Ici, on passe par un paramètre de requête (query param),
+     * ex: /villes/byName?nom=Paris
+     */
+    @GetMapping("/byName")
+    public Ville getVilleByName(@RequestParam String nom) {
+        return villeService.extractVille(nom);
+    }
+
+    /**
+     * GET #4 : Retourne une liste des n plus grandes villes d’un département
+     * Exemple d'appel : GET /villes/{depId}/top/{n}
+     * ex: /villes/34/top/5
+     */
+    @GetMapping("/{depId}/top/{n}")
+    public ResponseEntity<List<Ville>> getTopNVilles(@PathVariable Long depId, @PathVariable int n) {
+        Departement dep = departementRepository.findById(depId).orElse(null);
+        if (dep == null) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+        List<Ville> toutes = villeRepository.findByDepartementOrderByNbHabitantsDesc(dep);
+
+        // si n > toutes.size(), on retournera toute la liste, sinon un sous-ensemble
+        List<Ville> topN = toutes.stream().limit(n).toList();
+        return ResponseEntity.ok(topN);
+    }
+
+    /**
+     * GET #5 : Retourne une liste des villes ayant une population comprise entre min et max dans un département donné
+     * Exemple d'appel : GET /villes/{depId}/villesByPop
+     * ex: /villes/34/villesByPop?min=100000&max=500000
+     */
+    @GetMapping("/{depId}/villesByPop")
+    public ResponseEntity<List<Ville>> getVillesByPopulation(@PathVariable Long depId,
+                                                             @RequestParam int min,
+                                                             @RequestParam int max) {
+        // Vérifier le département
+        if (!departementRepository.existsById(depId)) {
+            return ResponseEntity.notFound().build();
+        }
+        // Récupérer les villes
+        List<Ville> villes = villeRepository.findByDepartementIdAndPopulation(depId, min, max);
+        return ResponseEntity.ok(villes);
     }
 
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteVille(@PathVariable int id) {
-        for (int i = 0; i < villes.size(); i++) {
-            if (villes.get(i).getId() == id) {
-                villes.remove(i);
-                return ResponseEntity.ok("Ville supprimée avec succès.");
-            }
-        }
-        return ResponseEntity.notFound().build();
-    }
 
-
-
+    /**
+     * POST : Insère une nouvelle ville en base de données
+     * Exemple d'appel : POST /villes
+     * Avec un JSON dans le body, ex:
+     * {
+     *   "nom": "Toulouse",
+     *   "nbHabitants": 500000
+     * }
+     *
+     * La méthode retourne la liste des villes après insertion
+     */
     @PostMapping
-    public ResponseEntity<String> createVille(@Valid @RequestBody Ville nouvelleVille, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-
-            return ResponseEntity.badRequest().body("Erreurs de validation : " + bindingResult.getAllErrors());
+    public ResponseEntity<?> createVille(@RequestBody VilleDto villeDto) {
+        Long depId = villeDto.getDepartementId();
+        if (depId == null) {
+            return ResponseEntity.badRequest().body("departementId est obligatoire");
+        }
+        Departement dep = departementRepository.findById(depId).orElse(null);
+        if (dep == null) {
+            return ResponseEntity.badRequest().body("Département introuvable pour l'id " + depId);
         }
 
-        boolean idExiste = villes.stream()
-                .anyMatch(v -> v.getId() == nouvelleVille.getId());
+        Ville ville = new Ville();
+        ville.setNom(villeDto.getNom());
+        ville.setNbHabitants(villeDto.getNbHabitants());
+        ville.setDepartement(dep);
 
-        if (idExiste) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Une ville avec cet ID existe déjà !");
-        }
 
-        villes.add(nouvelleVille);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("Ville créée avec succès !");
+        villeRepository.save(ville);
+
+        return ResponseEntity.ok(ville);
     }
 
-    // PUT : localhost:8080/villes
+    /**
+     * PUT : Met à jour une ville existante
+     * Exemple d'appel : PUT /villes
+     * Avec un JSON dans le body, ex:
+     * {
+     *   "id": 3,
+     *   "nom": "Lyon modifié",
+     *   "nbHabitants": 600000
+     * }
+     *
+     * La méthode retourne la liste des villes après modification
+     */
     @PutMapping
-    public ResponseEntity<String> modifVille(@RequestBody Ville ville) {
-        Errors result = villeValidator.validateObject(ville);
-        if (result.hasErrors()) {
-            return ResponseEntity.badRequest().body(result.getAllErrors().get(0).getDefaultMessage());
-        }
-
-        for (Ville villeExistante : villes) {
-            if (villeExistante.getId() == ville.getId()) {
-                villeExistante.setNom(ville.getNom());
-                villeExistante.setNbHabitants(ville.getNbHabitants());
-                return ResponseEntity.ok("Ville modifiée avec succès");
-            }
-        }
-
-        return ResponseEntity
-                .badRequest()
-                .body("Ville inexistante pour l'id suivant : " + ville.getId());
+    public List<Ville> updateVille(@RequestBody Ville villeModifiee) {
+        return villeService.modifierVille(villeModifiee.getId().intValue(), villeModifiee);
     }
 
+    /**
+     * DELETE : Supprime une ville en fonction de son id
+     * Exemple d'appel : DELETE /villes/10
+     *
+     * La méthode retourne la liste des villes après suppression
+     */
+    @DeleteMapping("/{id}")
+    public List<Ville> deleteVilleById(@PathVariable int id) {
+        return villeService.supprimerVille(id);
+    }
 }
-

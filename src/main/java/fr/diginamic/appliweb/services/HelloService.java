@@ -1,4 +1,4 @@
-package fr.diginamic.appliweb.controleurs;
+package fr.diginamic.appliweb.services;
 
 import org.springframework.stereotype.Service;
 

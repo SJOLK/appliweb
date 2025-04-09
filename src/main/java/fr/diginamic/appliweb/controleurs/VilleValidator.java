@@ -1,6 +1,6 @@
 package fr.diginamic.appliweb.controleurs;
 
-import fr.diginamic.appliweb.Ville;
+import fr.diginamic.appliweb.entities.Ville;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
