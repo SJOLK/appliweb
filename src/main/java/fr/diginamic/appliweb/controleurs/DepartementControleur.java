@@ -38,7 +38,7 @@ public class DepartementControleur {
 
     @PutMapping("/{id}")
     public ResponseEntity<String> updateDepartement(@PathVariable long id, @Valid @RequestBody Departement departement) {
-        departement.setId(id);
+        departement.setId((int) id);
         departementService.modifierDepartement((int) id, departement);
 
         return ResponseEntity.ok("Département modifié avec succès");

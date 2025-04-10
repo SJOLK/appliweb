@@ -6,8 +6,10 @@ import fr.diginamic.appliweb.dtos.VilleDto;
 import fr.diginamic.appliweb.repositories.DepartementRepository;
 import fr.diginamic.appliweb.repositories.VilleRepository;
 import fr.diginamic.appliweb.services.VilleService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -101,25 +103,27 @@ public class VilleControleur {
      * La méthode retourne la liste des villes après insertion
      */
     @PostMapping
-    public ResponseEntity<?> createVille(@RequestBody VilleDto villeDto) {
-        Long depId = villeDto.getDepartementId();
-        if (depId == null) {
-            return ResponseEntity.badRequest().body("departementId est obligatoire");
-        }
-        Departement dep = departementRepository.findById(depId).orElse(null);
-        if (dep == null) {
-            return ResponseEntity.badRequest().body("Département introuvable pour l'id " + depId);
+    public ResponseEntity<String> addVille(@Valid @RequestBody  Ville ville, BindingResult result) {
+        boolean existe = villeService.extractVilles().stream()
+                .anyMatch(v -> v.getNom().equalsIgnoreCase(ville.getNom()));
+
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body(result.getAllErrors().getFirst().getDefaultMessage());
         }
 
-        Ville ville = new Ville();
-        ville.setNom(villeDto.getNom());
-        ville.setNbHabitants(villeDto.getNbHabitants());
-        ville.setDepartement(dep);
+        if (existe) {
+            return ResponseEntity.badRequest().body("La ville existe déjà");
+        }
 
+        boolean idExistant =  villeService.extractVilles().stream().anyMatch(v -> v.getId() == ville.getId());
 
-        villeRepository.save(ville);
+        if (idExistant) {
+            return ResponseEntity.badRequest().body("L'identifiant existe déjà");
+        }
 
-        return ResponseEntity.ok(ville);
+        villeService.insertVille(ville);
+
+        return ResponseEntity.ok("Ville insérée avec succès");
     }
 
     /**
