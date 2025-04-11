@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 public class Ville {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     @NotNull
     @Size(min = 2)
@@ -23,7 +23,7 @@ public class Ville {
 
 
     @ManyToOne
-    @JoinColumn(name = "departement_id", nullable = false)
+    @JoinColumn(name = "departement_id")
     @JsonBackReference// Nom de la colonne FK
     private Departement departement;
 
@@ -31,7 +31,7 @@ public class Ville {
     }
 
 
-    public Ville(Long id, @NotNull String nom, int nbHabitants, Departement departement) {
+    public Ville(int id, @NotNull String nom, int nbHabitants, Departement departement) {
         this.id = id;
         this.nom = nom;
         this.nbHabitants = nbHabitants;
@@ -73,11 +73,11 @@ public class Ville {
                 '}';
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 }

@@ -11,7 +11,7 @@ public class Departement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     private String code;
     private String nomDep;
@@ -31,7 +31,7 @@ public class Departement {
 
     // GETTERS / SETTERS
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
