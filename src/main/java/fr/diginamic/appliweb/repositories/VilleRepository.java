@@ -47,5 +47,7 @@ public interface VilleRepository extends CrudRepository<Ville, Integer> {
     List<Ville> findByDepartement_IdOrderByNbHabitantsDesc(Long depId, Pageable pageable);
 
     Page<Ville> findAll(org.springframework.data.domain.Pageable pageable);
+
+    List<Ville> findByDepartementAndNom(Departement dep, String nom);
 }
 

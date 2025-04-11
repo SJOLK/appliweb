@@ -67,4 +67,9 @@ public class Departement {
         villes.add(ville);
         ville.setDepartement(this);
     }
+
+
+    public boolean isPresent() {
+        return false;
+    }
 }

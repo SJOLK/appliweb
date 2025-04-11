@@ -1,6 +1,7 @@
 package fr.diginamic.appliweb.controleurs;
 
 import fr.diginamic.appliweb.entities.Departement;
+import fr.diginamic.appliweb.exceptions.ExceptionFonctionnelle;
 import fr.diginamic.appliweb.repositories.DepartementRepository;
 import fr.diginamic.appliweb.services.DepartementService;
 import jakarta.validation.Valid;
@@ -30,16 +31,16 @@ public class DepartementControleur {
     }
 
     @PostMapping
-    public ResponseEntity<String> addDepartement(@Valid @RequestBody Departement departement) {
+    public ResponseEntity<String> addDepartement(@Valid @RequestBody Departement departement) throws ExceptionFonctionnelle {
         departementService.insertDepartement(departement);
 
         return ResponseEntity.ok("Département inséré avec succès");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateDepartement(@PathVariable long id, @Valid @RequestBody Departement departement) {
+    public ResponseEntity<String> updateDepartement(@PathVariable long id, @Valid @RequestBody Departement departement) throws ExceptionFonctionnelle {
         departement.setId((int) id);
-        departementService.modifierDepartement((int) id, departement);
+        departementService.modifierDepartement((long) id, departement);
 
         return ResponseEntity.ok("Département modifié avec succès");
     }
