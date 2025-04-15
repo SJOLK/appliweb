@@ -32,7 +32,7 @@ public class Departement {
     // GETTERS / SETTERS
 
     public void setId(int id) {
-        this.id = id;
+        this.id = (long) id;
     }
 
     public Long getId() {

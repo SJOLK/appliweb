@@ -1,5 +1,7 @@
 package fr.diginamic.appliweb.controleurs;
 
+import fr.diginamic.appliweb.dtos.DepartementDto;
+import fr.diginamic.appliweb.dtos.VilleDto;
 import fr.diginamic.appliweb.entities.Departement;
 import fr.diginamic.appliweb.repositories.DepartementRepository;
 import fr.diginamic.appliweb.services.DepartementService;
@@ -21,27 +23,62 @@ public class DepartementControleur {
 
     @GetMapping
     public List<Departement> listeDepartements() {
+
         return departementService.extractDepartements();
     }
 
     @GetMapping("/{id}")
-    public Departement getDepartement(@PathVariable int id) {
+    public Departement getDepartementById(@PathVariable int id) {
+
         return departementService.extractDepartement(id);
     }
 
+    @GetMapping("/{nom}")
+    public DepartementDto getDepartementByNom(@PathVariable String nom) {
+        return departementService.extraireParNom(nom);
+    }
+
+    @GetMapping("/id/{id}min/{min}max/{max}")
+    public List<VilleDto> extractByNomEtMinMax(@PathVariable int id,@PathVariable int min,@PathVariable int max) {
+        return departementService.extraireVilleParDepMinMax(id, min, max);
+    }
+
     @PostMapping
-    public ResponseEntity<String> addDepartement(@Valid @RequestBody Departement departement) {
-        departementService.insertDepartement(departement);
+    public ResponseEntity<String> addDepartement(@Valid @RequestBody DepartementDto departementDto) {
+        departementService.insertDepartement(departementDto);
 
         return ResponseEntity.ok("Département inséré avec succès");
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<String> updateDepartement(@PathVariable long id, @Valid @RequestBody Departement departement) {
-        departement.setId((int) id);
-        departementService.modifierDepartement((int) id, departement);
+    @PostMapping
+    public ResponseEntity<?> insert(@RequestBody DepartementDto nvDepartement) {
 
-        return ResponseEntity.ok("Département modifié avec succès");
+        if (nvDepartement.getNom() == null ) {
+            return ResponseEntity.badRequest().body("Le nom du département est obligatoire.");
+        }
+
+        if (nvDepartement.getId() != 0) {
+            return ResponseEntity.badRequest().body("L'identifiant du département doit être nul pour une création.");
+        }
+
+            return ResponseEntity.ok(departementService.insertDepartement(nvDepartement));
+    }
+
+    @PutMapping
+    public ResponseEntity<?> modifDepartement(@RequestBody DepartementDto departement) {
+
+        if (departement.getNom() == null || departement.getNom().trim().isEmpty()) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Le nom du département est obligatoire.");
+        }
+        if (departement.getId() == 0) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("L'identifiant du département doit être renseigné et non nul.");
+        }
+        List<DepartementDto> resultat = departementService.modifierDepartement(departement);
+        return ResponseEntity.ok(resultat);
     }
 
     @DeleteMapping("/{id}")
@@ -50,5 +87,7 @@ public class DepartementControleur {
 
         return ResponseEntity.ok("Département supprimé avec succès");
     }
+
+
 }
 

@@ -151,6 +151,7 @@ public class VilleControleur {
      */
     @DeleteMapping("/{id}")
     public List<Ville> deleteVilleById(@PathVariable int id) {
+
         return villeService.supprimerVille(id);
     }
 }
