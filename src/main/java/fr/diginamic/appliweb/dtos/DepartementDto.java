@@ -11,7 +11,7 @@ public class DepartementDto {
     private List<VilleDto> villes = new ArrayList<>();
 
     public DepartementDto(Long id, String nom) {
-        this.id = id;
+        this.id = Math.toIntExact(id);
         this.nom = nom;
     }
 

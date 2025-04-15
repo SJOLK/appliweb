@@ -49,5 +49,7 @@ public interface VilleRepository extends CrudRepository<Ville, Integer> {
     Page<Ville> findAll(org.springframework.data.domain.Pageable pageable);
 
     List<Ville> findByDepartementAndNom(Departement dep, String nom);
+
+
 }
 
