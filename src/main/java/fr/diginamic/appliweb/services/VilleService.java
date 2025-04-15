@@ -143,4 +143,8 @@ public class VilleService {
         villeDao.deleteVille(idVille);
         return villeDao.extractAll();
     }
+
+    public List<Ville> findVillesByPopulationGreaterThan(int minPopulation) {
+        return List.of();
+    }
 }

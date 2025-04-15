@@ -7,8 +7,10 @@ import fr.diginamic.appliweb.repositories.DepartementRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DepartementService {
@@ -16,6 +18,22 @@ public class DepartementService {
     @Autowired
     private DepartementRepository departementRepository;
 
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    public String getNomDepartement(String codeDepartement) {
+        String url = "https://geo.api.gouv.fr/departements/" + codeDepartement + "?fields=nom,code,codeRegion";
+        try {
+            // On définit que la réponse sera mappée dans une Map
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            if(response != null && response.containsKey("nom")){
+                return (String) response.get("nom");
+            }
+        } catch (Exception e) {
+            // En cas de problème, on retourne simplement le code département
+            System.err.println("Erreur lors de l'appel API pour le département " + codeDepartement + " : " + e.getMessage());
+        }
+        return codeDepartement;
+    }
 
     public DepartementService(final DepartementDao departementDao) {
         this.departementDao = departementDao;

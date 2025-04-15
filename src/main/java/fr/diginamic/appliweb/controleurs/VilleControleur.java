@@ -4,6 +4,9 @@ import fr.diginamic.appliweb.entities.Departement;
 import fr.diginamic.appliweb.entities.Ville;
 import fr.diginamic.appliweb.repositories.DepartementRepository;
 import fr.diginamic.appliweb.repositories.VilleRepository;
+import fr.diginamic.appliweb.services.DepartementService;
+import fr.diginamic.appliweb.services.VilleService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -13,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 @RestController
@@ -24,6 +29,40 @@ public class VilleControleur {
 
     @Autowired
     private DepartementRepository departementRepository;
+
+    private final VilleService villeService;
+    private final DepartementService departementService;
+
+    public VilleControleur(VilleService villeService, DepartementService departementService) {
+        this.villeService = villeService;
+        this.departementService = departementService;
+    }
+
+    @GetMapping("/export/csv")
+    public void exportCsv(@RequestParam("minPopulation") int minPopulation, HttpServletResponse response) throws IOException {
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"villes.csv\"");
+
+        // Création de l'écrivain pour écrire dans le flux de réponse
+        PrintWriter writer = response.getWriter();
+
+        // En-tête du CSV
+        writer.println("Nom de la ville,Nombre d’habitants,Code Département,Nom Département");
+
+        // Récupération des villes selon le critère de population
+        List<Ville> villes = villeService.findVillesByPopulationGreaterThan(minPopulation);
+        for (Ville ville : villes) {
+            // Récupération du nom du département via l'API externe
+            String nomDepartement = departementService.getNomDepartement(ville.getDepartement().getCode());
+            String csvLine = String.format("%s,%d,%s,%s",
+                    ville.getNom(), ville.getNbHabitants(), ville.getDepartement().getCode(), nomDepartement);
+            writer.println(csvLine);
+        }
+        writer.flush();
+    }
+
+
+
 
     // ---------------------------
     // GET - LIST ALL VILLES PAGINATED
