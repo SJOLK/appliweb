@@ -38,12 +38,16 @@ public interface VilleRepository extends CrudRepository<Ville, Integer> {
     List<Ville> findByNbHabitantsGreaterThanAndNbHabitantsLessThan(int min, int max);
 
     // 4. Recherche de toutes les villes d’un département dont la population est supérieure à min
+
+    @Query("SELECT v FROM Ville v WHERE v.departement.id = :departementId AND v.nbHabitants > :min")
     List<Ville> findByDepartement_IdAndNbHabitantsGreaterThan(Long depId, int min);
 
     // 5. Recherche de toutes les villes d’un département dont la population est supérieure à min et inférieure à max.
+    @Query("SELECT v FROM Ville v WHERE v.departement.id = :departementId AND v.nbHabitants BETWEEN :min AND :max")
     List<Ville> findByDepartement_IdAndNbHabitantsGreaterThanAndNbHabitantsLessThan(Long depId, int min, int max);
 
     // 6. Recherche des n villes les plus peuplées d’un département donné (utilisation de Pageable pour limiter le résultat)
+    @Query("SELECT v FROM Ville v WHERE v.departement.id = :departementId ORDER BY v.nbHabitants DESC")
     List<Ville> findByDepartement_IdOrderByNbHabitantsDesc(Long depId, Pageable pageable);
 
     Page<Ville> findAll(org.springframework.data.domain.Pageable pageable);
