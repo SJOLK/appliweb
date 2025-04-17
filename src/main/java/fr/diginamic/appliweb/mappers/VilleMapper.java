@@ -29,7 +29,7 @@ public class VilleMapper {
 
     public Ville toBean(VilleDto dto) {
         Ville ville = new Ville();
-        ville.setId(dto.getId());
+        ville.setId((int) dto.getId());
         ville.setNom(dto.getNom());
         ville.setNbHabitants(dto.getNbHabs());
         // Optionally, handle the department here if you want to convert it from dto.getDepartement().
