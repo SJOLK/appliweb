@@ -5,11 +5,16 @@ import fr.diginamic.appliweb.entities.Departement;
 import fr.diginamic.appliweb.entities.Ville;
 import fr.diginamic.appliweb.daos.VilleDao;
 import fr.diginamic.appliweb.exceptions.ExceptionFonctionnelle;
+import fr.diginamic.appliweb.exceptions.VilleNotFoundException;
 import fr.diginamic.appliweb.mappers.VilleMapper;
 import fr.diginamic.appliweb.repositories.DepartementRepository;
 import fr.diginamic.appliweb.repositories.VilleRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,6 +31,73 @@ public class VilleService {
     @Autowired
     private DepartementRepository departementRepository;
 
+
+    public List<Ville> findVillesByNomPrefix(String prefix) {
+        List<Ville> list = villeRepository.findByNomStartingWithIgnoreCase(prefix);
+        if (list.isEmpty()) {
+            throw new VilleNotFoundException(
+                    "Aucune ville dont le nom commence par \"" + prefix + "\" n’a été trouvée"
+            );
+        }
+        return list;
+    }
+
+    public List<Ville> findVillesByPopulationGreaterThan(int min) {
+        List<Ville> list = villeRepository.findByNombreHabitantsGreaterThan(min);
+        if (list.isEmpty()) {
+            throw new VilleNotFoundException(
+                    "Aucune ville n’a une population supérieure à " + min
+            );
+        }
+        return list;
+    }
+
+    public List<Ville> findVillesByPopulationBetween(int min, int max) {
+        List<Ville> list = villeRepository.findByNombreHabitantsBetween(min, max);
+        if (list.isEmpty()) {
+            throw new VilleNotFoundException(
+                    "Aucune ville n’a une population comprise entre " + min + " et " + max
+            );
+        }
+        return list;
+    }
+
+    public List<Ville> findVillesByDeptAndPopGreaterThan(String codeDept, int min) {
+        List<Ville> list = villeRepository.findByCodeDepartementAndNombreHabitantsGreaterThan(codeDept, min);
+        if (list.isEmpty()) {
+            throw new VilleNotFoundException(
+                    "Aucune ville n’a une population supérieure à " + min
+                            + " dans le département " + codeDept
+            );
+        }
+        return list;
+    }
+
+    public List<Ville> findVillesByDeptAndPopBetween(String codeDept, int min, int max) {
+        List<Ville> list = villeRepository.findByCodeDepartementAndNombreHabitantsBetween(codeDept, min, max);
+        if (list.isEmpty()) {
+            throw new VilleNotFoundException(
+                    "Aucune ville n’a une population comprise entre "
+                            + min + " et " + max
+                            + " dans le département " + codeDept
+            );
+        }
+        return list;
+    }
+
+    public List<Ville> findTopNVillesByDepartment(String codeDept, int n) {
+        Page<Ville> page = villeRepository.findByCodeDepartement(
+                codeDept,
+                (java.awt.print.Pageable) PageRequest.of(0, n, Sort.by("nombreHabitants").descending())
+        );
+        List<Ville> list = page.getContent();
+        if (list.isEmpty()) {
+            throw new VilleNotFoundException(
+                    "Aucune ville trouvée dans le département " + codeDept
+            );
+        }
+        return list;
+    }
     /**
      * Extrait et retourne toutes les villes en base
      */
@@ -134,6 +206,7 @@ public class VilleService {
         return villeDB;
     }
 
+
     /**
      * Supprime la ville dont l'id est passé en paramètre
      * et retourne la liste des villes après suppression
@@ -142,5 +215,10 @@ public class VilleService {
     public List<Ville> supprimerVille(int idVille) {
         villeDao.deleteVille(idVille);
         return villeDao.extractAll();
+    }
+
+    public List<Ville> listerVillesDuDepartement(String code) {
+        Pageable p = Pageable.unpaged();
+        return villeRepository.findByDepartementCodeOrderByNbHabitantsDesc(code, (java.awt.print.Pageable) p);
     }
 }

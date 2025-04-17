@@ -45,16 +45,15 @@ public class DepartementControleur {
     }
 
     @PostMapping
-    public ResponseEntity<String> addDepartement(@Valid @RequestBody DepartementDto departementDto) throws ExceptionFonctionnelle {
-        departementService.insertDepartement(departementDto);
+    public ResponseEntity<String> addDepartement(@Valid @RequestBody Departement departement) throws ExceptionFonctionnelle {
+        departementService.insertDepartement(departement);
 
         return ResponseEntity.ok("Département inséré avec succès");
     }
 
     @PostMapping
-    public ResponseEntity<?> insert(@RequestBody DepartementDto nvDepartement) throws ExceptionFonctionnelle {
-
-        if (nvDepartement.getNom() == null ) {
+    public ResponseEntity<?> insert(@RequestBody Departement nvDepartement) throws ExceptionFonctionnelle {
+        if (nvDepartement.getNomDep() == null ) {
             return ResponseEntity.badRequest().body("Le nom du département est obligatoire.");
         }
 
@@ -65,21 +64,12 @@ public class DepartementControleur {
         return ResponseEntity.ok(departementService.insertDepartement(nvDepartement));
     }
 
-    @PutMapping
-    public ResponseEntity<?> modifDepartement(@RequestBody DepartementDto departement) {
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateDepartement(@PathVariable long id, @Valid @RequestBody Departement departement) throws ExceptionFonctionnelle {
+        departement.setId((int) id);
+        departementService.modifierDepartement((long) id, departement);
 
-        if (departement.getNom() == null || departement.getNom().trim().isEmpty()) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("Le nom du département est obligatoire.");
-        }
-        if (departement.getId() == 0) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("L'identifiant du département doit être renseigné et non nul.");
-        }
-        List<DepartementDto> resultat = departementService.modifierDepartement(departement);
-        return ResponseEntity.ok(resultat);
+        return ResponseEntity.ok("Département modifié avec succès");
     }
 
     @DeleteMapping("/{id}")

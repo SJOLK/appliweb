@@ -51,5 +51,26 @@ public interface VilleRepository extends CrudRepository<Ville, Integer> {
     List<Ville> findByDepartementAndNom(Departement dep, String nom);
 
 
+
+    List<Ville> findByDepartementCodeOrderByNbHabitantsDesc(String code, Pageable pageable);
+
+
+    // 1. Toutes les villes dont le nom commence par une chaîne (ignore la casse)
+    List<Ville> findByNomStartingWithIgnoreCase(String prefix);
+
+    // 2. Toutes les villes dont la population est supérieure à min
+    List<Ville> findByNombreHabitantsGreaterThan(int min);
+
+    // 3. Toutes les villes dont la population est comprise entre min et max
+    List<Ville> findByNombreHabitantsBetween(int min, int max);
+
+    // 4. Toutes les villes d’un département dont la population est supérieure à min
+    List<Ville> findByCodeDepartementAndNombreHabitantsGreaterThan(String codeDept, int min);
+
+    // 5. Toutes les villes d’un département dont la population est comprise entre min et max
+    List<Ville> findByCodeDepartementAndNombreHabitantsBetween(String codeDept, int min, int max);
+
+    // 6. Les n villes les plus peuplées d’un département
+    Page<Ville> findByCodeDepartement(String codeDept, Pageable pageable);
 }
 

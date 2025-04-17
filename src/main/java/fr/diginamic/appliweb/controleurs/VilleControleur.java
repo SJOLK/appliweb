@@ -1,19 +1,30 @@
 package fr.diginamic.appliweb.controleurs;
 
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import fr.diginamic.appliweb.entities.Departement;
 import fr.diginamic.appliweb.entities.Ville;
 import fr.diginamic.appliweb.repositories.DepartementRepository;
 import fr.diginamic.appliweb.repositories.VilleRepository;
+import fr.diginamic.appliweb.services.VilleService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/villes")
@@ -25,6 +36,9 @@ public class VilleControleur {
     @Autowired
     private DepartementRepository departementRepository;
 
+    private VilleService villeService;
+
+    private final RestTemplate restTemplate = new RestTemplate();
     // ---------------------------
     // GET - LIST ALL VILLES PAGINATED
     // ---------------------------
@@ -195,5 +209,81 @@ public class VilleControleur {
         }
         villeRepository.deleteById(Math.toIntExact(id));
         return ResponseEntity.ok("Ville supprimée avec succès");
+    }
+    @GetMapping("/search/byName")
+    public List<Ville> searchByName(@RequestParam("prefix") String prefix) {
+        return villeService.findVillesByNomPrefix(prefix);
+    }
+
+    @GetMapping("/search/population/greater")
+    public List<Ville> searchPopGreater(@RequestParam("min") int min) {
+        return villeService.findVillesByPopulationGreaterThan(min);
+    }
+
+    @GetMapping("/search/population/between")
+    public List<Ville> searchPopBetween(
+            @RequestParam("min") int min,
+            @RequestParam("max") int max) {
+        return villeService.findVillesByPopulationBetween(min, max);
+    }
+
+    @GetMapping("/search/department/population/greater")
+    public List<Ville> searchDeptPopGreater(
+            @RequestParam("codeDept") String codeDept,
+            @RequestParam("min") int min) {
+        return villeService.findVillesByDeptAndPopGreaterThan(codeDept, min);
+    }
+
+    @GetMapping("/search/department/population/between")
+    public List<Ville> searchDeptPopBetween(
+            @RequestParam("codeDept") String codeDept,
+            @RequestParam("min") int min,
+            @RequestParam("max") int max) {
+        return villeService.findVillesByDeptAndPopBetween(codeDept, min, max);
+    }
+
+    @GetMapping("/search/department/top")
+    public List<Ville> searchTopDept(
+            @RequestParam("codeDept") String codeDept,
+            @RequestParam("n") int n) {
+        return villeService.findTopNVillesByDepartment(codeDept, n);
+    }
+
+    @GetMapping("/{code}/export/pdf")
+    public void exportPdf(
+            @PathVariable String code,
+            HttpServletResponse response
+    ) throws DocumentException, IOException {
+        // Récupérer le nom du département via l’API externe
+        String url = "https://geo.api.gouv.fr/departements/" + code + "?fields=nom,code,codeRegion";
+        @SuppressWarnings("unchecked")
+        Map<String, Object> dto = restTemplate.getForObject(url, Map.class);
+        String nomDept = dto != null ? (String) dto.get("nom") : "Inconnu";
+
+        // Préparer le PDF
+        response.setContentType("application/pdf");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=departement_" + code + ".pdf");
+
+        Document document = new Document();
+        PdfWriter.getInstance(document, response.getOutputStream());
+        document.open();
+
+        // Titre
+        document.add(new Paragraph("Département : " + nomDept + " (" + code + ")"));
+        document.add(new Paragraph(" "));
+
+        // Table des villes
+        List<Ville> villes = villeService.listerVillesDuDepartement(code);
+        PdfPTable table = new PdfPTable(2);
+        table.addCell("Ville");
+        table.addCell("Population");
+        for (Ville v : villes) {
+            table.addCell(v.getNom());
+            table.addCell(String.valueOf(v.getNbHabitants()));
+        }
+        document.add(table);
+
+        document.close();
     }
 }
