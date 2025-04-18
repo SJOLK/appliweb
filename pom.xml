@@ -73,6 +73,21 @@
 			<version>RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
+
+		<!-- Spring Boot Test : JUnit 5, Mockito, Hamcrest, JSONassert, etc. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Base en mémoire pour les tests -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>

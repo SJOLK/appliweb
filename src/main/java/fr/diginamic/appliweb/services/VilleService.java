@@ -1,11 +1,9 @@
 package fr.diginamic.appliweb.services;
 
-import fr.diginamic.appliweb.dtos.VilleDto;
 import fr.diginamic.appliweb.entities.Departement;
 import fr.diginamic.appliweb.entities.Ville;
 import fr.diginamic.appliweb.daos.VilleDao;
 import fr.diginamic.appliweb.exceptions.ExceptionFonctionnelle;
-import fr.diginamic.appliweb.mappers.VilleMapper;
 import fr.diginamic.appliweb.repositories.DepartementRepository;
 import fr.diginamic.appliweb.repositories.VilleRepository;
 import jakarta.transaction.Transactional;
@@ -102,7 +100,7 @@ public class VilleService {
      * Retourne la liste après modification
      */
     @Transactional
-    public Ville updamodifierVilleteVille(int id, Ville villeModifiee) throws ExceptionFonctionnelle {
+    public Ville updateVille(int id, Ville villeModifiee) throws ExceptionFonctionnelle {
         Ville villeDB = villeRepository.findById(id)
                 .orElseThrow(() -> new ExceptionFonctionnelle("La ville d'identifiant " + id + " n'existe pas."));
         // Vérification population
@@ -153,6 +151,17 @@ public class VilleService {
     }
 
     public List<Ville> findVillesByPopulationGreaterThan(int minPopulation) {
-        return List.of();
+        List<Ville> result = villeRepository.findByNbHabitantsGreaterThan(minPopulation);
+        if (result.isEmpty()) {
+            System.out.println("Aucune ville n’a une population supérieure à " + minPopulation);
+        }
+        return result;
+    }
+    public List<Ville> findVillesBetween(int min, int max) {
+        List<Ville> result = villeRepository.findByNbHabitantsGreaterThanAndNbHabitantsLessThan(min,max);
+        if (result.isEmpty()) {
+            System.out.println("Aucune ville n’a une population entre " + min + "et" + max);
+        }
+        return result;
     }
 }
