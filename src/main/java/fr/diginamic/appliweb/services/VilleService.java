@@ -34,6 +34,14 @@ public class VilleService {
     }
 
     /**
+     * Renvoie toutes les villes du département donné.
+     * @param codeDept code du département (ex. "75")
+     * @return liste (vide si aucune)
+     */
+    public List<Ville> listerVillesDuDepartement(String codeDept) {
+        return villeRepository.findByCodeDepartement(codeDept);
+    }
+    /**
      * Extrait la ville dont l'ID est passé en paramètre
      */
     public Ville extractVille(int idVille) {

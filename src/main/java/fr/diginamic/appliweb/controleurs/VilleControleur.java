@@ -58,6 +58,7 @@ public class VilleControleur {
                     ville.getNom(), ville.getNbHabitants(), ville.getDepartement().getCode(), nomDepartement);
             writer.println(csvLine);
         }
+
         writer.flush();
     }
 
